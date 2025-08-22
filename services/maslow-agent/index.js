@@ -1,16 +1,21 @@
 // Maslow X - AI Assistant Service
 // Provides intelligent help and message enhancement using Claude
 
-import express from 'express';
-import { MaslowXRequest, MaslowXResponse, ChatCommand } from '../../shared/types/index.js';
-import config from '../../shared/config/index.js';
+const express = require('express');
+const config = require('../../shared/config/index.js');
+const Anthropic = require('@anthropic-ai/sdk');
 
 const app = express();
 app.use(express.json());
 
-// Mock Claude API for POC (replace with real Claude API when key is available)
-class MockClaudeAPI {
-  async generateHelp(request: MaslowXRequest): Promise<MaslowXResponse> {
+// Initialize Claude API client
+const anthropic = config.claude.api_key ? new Anthropic({
+  apiKey: config.claude.api_key,
+}) : null;
+
+// Claude X - AI Recognition Expert
+class MaslowXAI {
+  async generateHelp(request) {
     console.log('🤖 Maslow X Help Request:', request.type);
     
     const responses = {
@@ -92,14 +97,67 @@ Want to give meaningful recognition?`,
     return responses.basic_help;
   }
 
-  async enhanceMessage(message: string, context: any): Promise<MaslowXResponse> {
+  async enhanceMessage(message, context) {
     console.log('✨ Maslow X Message Enhancement');
     
-    // Simple enhancement logic for POC
+    // If Claude API is not available, use fallback enhancement
+    if (!anthropic) {
+      return this.fallbackEnhancement(message, context);
+    }
+    
+    try {
+      const prompt = `You are Claude X, a 25-year veteran B2B employee rewards and recognition expert. Your role is to help enhance recognition messages to make them more meaningful and impactful.
+
+CONTEXT:
+- Recipient: ${context.recipient_name || 'team member'}
+- Points being awarded: ${context.points || 'N/A'}
+- Behavior attributes: ${context.behaviors ? context.behaviors.join(', ') : 'N/A'}
+- Original message: "${message}"
+
+TASK:
+Please enhance this recognition message following these guidelines:
+1. Keep the core sentiment and authenticity
+2. Make it more specific and impactful
+3. Focus on the behavior and its positive impact
+4. Use professional but warm language
+5. Keep it concise (2-3 sentences max)
+6. Maintain the original person's voice/style
+
+Return ONLY the enhanced message, nothing else. Do not add quotes, explanations, or meta-commentary.`;
+
+      const response = await anthropic.messages.create({
+        model: config.claude.model || 'claude-3-5-sonnet-20241022',
+        max_tokens: 200,
+        temperature: 0.7,
+        messages: [
+          {
+            role: 'user',
+            content: prompt
+          }
+        ]
+      });
+
+      const enhanced = response.content[0].text.trim();
+      
+      return {
+        response_text: "I've enhanced your message to be more impactful:",
+        enhanced_content: enhanced,
+        confidence_score: 0.95,
+        ai_powered: true
+      };
+      
+    } catch (error) {
+      console.error('Claude API enhancement error:', error);
+      return this.fallbackEnhancement(message, context);
+    }
+  }
+  
+  fallbackEnhancement(message, context) {
+    // Fallback enhancement logic when Claude API is unavailable
     const enhancements = {
       "great job": "fantastic work and dedication",
       "thanks": "deeply appreciate",
-      "good work": "excellent execution and attention to detail",
+      "good work": "excellent execution and attention to detail", 
       "helped": "went above and beyond to support",
       "finished": "successfully completed with quality results"
     };
@@ -117,11 +175,91 @@ Want to give meaningful recognition?`,
     return {
       response_text: "I've enhanced your message to be more impactful:",
       enhanced_content: enhanced,
-      confidence_score: 0.85
+      confidence_score: 0.85,
+      ai_powered: false
+    };
+  }
+  
+  async enhanceMessageOptions(message, context) {
+    console.log('✨ Maslow X Message Enhancement Options');
+    
+    // If Claude API is not available, use fallback enhancement
+    if (!anthropic) {
+      return this.fallbackEnhancementOptions(message, context);
+    }
+    
+    try {
+      const prompt = `You are Claude X, a 25-year veteran B2B employee rewards and recognition expert. Your role is to help enhance recognition messages to make them more meaningful and impactful.
+
+CONTEXT:
+- Recipient: ${context.recipient_name || 'team member'}
+- Points being awarded: ${context.points || 'N/A'}
+- Behavior attributes: ${context.behaviors ? context.behaviors.join(', ') : 'N/A'}
+- Original message: "${message}"
+
+TASK:
+Please provide THREE different enhanced versions of this recognition message in these styles:
+
+1. PROFESSIONAL & IMPACT-FOCUSED: Business-focused, emphasizes results and impact on team/organization
+2. WARM & PERSONAL: Friendly and personable while maintaining professionalism
+3. CONCISE & DIRECT: Brief but powerful, gets straight to the point
+
+Guidelines for all versions:
+- Keep the core sentiment and authenticity
+- Make it more specific and impactful
+- Use professional but appropriate language for each style
+- Keep each version to 2-3 sentences max
+- Maintain the original person's voice/style
+
+Return as JSON with keys: "professional", "personal", "concise"`;
+
+      const response = await anthropic.messages.create({
+        model: config.claude.model || 'claude-3-5-sonnet-20241022',
+        max_tokens: 400,
+        temperature: 0.7,
+        messages: [
+          {
+            role: 'user',
+            content: prompt
+          }
+        ]
+      });
+
+      const enhancementText = response.content[0].text.trim();
+      
+      // Try to parse as JSON, if fails use fallback
+      try {
+        const options = JSON.parse(enhancementText);
+        return {
+          professional: options.professional,
+          personal: options.personal,
+          concise: options.concise,
+          ai_powered: true
+        };
+      } catch (parseError) {
+        console.log('Claude response not in JSON format, using fallback');
+        return this.fallbackEnhancementOptions(message, context);
+      }
+      
+    } catch (error) {
+      console.error('Claude API enhancement options error:', error);
+      return this.fallbackEnhancementOptions(message, context);
+    }
+  }
+  
+  fallbackEnhancementOptions(message, context) {
+    // Fallback enhancement options when Claude API is unavailable
+    const baseEnhancement = this.fallbackEnhancement(message, context).enhanced_content;
+    
+    return {
+      professional: baseEnhancement.replace(/your contribution/g, 'your professional contribution'),
+      personal: baseEnhancement.replace(/makes a real difference/g, 'means so much to all of us'),
+      concise: baseEnhancement.split('.')[0] + '. Excellent work!',
+      ai_powered: false
     };
   }
 
-  async suggestBehaviors(message: string): Promise<string[]> {
+  async suggestBehaviors(message) {
     console.log('🎯 Maslow X Behavior Suggestion');
     
     // Simple keyword matching for POC
@@ -152,13 +290,13 @@ Want to give meaningful recognition?`,
   }
 }
 
-const mockClaude = new MockClaudeAPI();
+const maslowX = new MaslowXAI();
 
 // Maslow X help endpoint
 app.post('/help', async (req, res) => {
   try {
-    const request: MaslowXRequest = req.body;
-    const response = await mockClaude.generateHelp(request);
+    const request = req.body;
+    const response = await maslowX.generateHelp(request);
     res.json({ success: true, data: response });
   } catch (error) {
     console.error('Maslow X help error:', error);
@@ -173,7 +311,7 @@ app.post('/help', async (req, res) => {
 app.post('/enhance-message', async (req, res) => {
   try {
     const { message, context } = req.body;
-    const response = await mockClaude.enhanceMessage(message, context);
+    const response = await maslowX.enhanceMessage(message, context);
     res.json({ success: true, data: response });
   } catch (error) {
     console.error('Message enhancement error:', error);
@@ -184,11 +322,26 @@ app.post('/enhance-message', async (req, res) => {
   }
 });
 
+// Message enhancement options endpoint (for interactive choice)
+app.post('/enhance-message-options', async (req, res) => {
+  try {
+    const { message, context } = req.body;
+    const response = await maslowX.enhanceMessageOptions(message, context);
+    res.json({ success: true, data: response });
+  } catch (error) {
+    console.error('Message enhancement options error:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Enhancement options unavailable' 
+    });
+  }
+});
+
 // Behavior suggestion endpoint  
 app.post('/suggest-behavior', async (req, res) => {
   try {
     const { message } = req.body;
-    const behaviors = await mockClaude.suggestBehaviors(message);
+    const behaviors = await maslowX.suggestBehaviors(message);
     res.json({ success: true, data: behaviors });
   } catch (error) {
     console.error('Behavior suggestion error:', error);
@@ -215,4 +368,4 @@ app.listen(PORT, () => {
   console.log(`🧠 AI Enhancement: ${config.claude.api_key ? 'Claude API' : 'Mock Mode'}`);
 });
 
-export default app;
+module.exports = app;

@@ -1,21 +1,35 @@
 // Slack Bot Implementation for RewardStation Integration
 // Handles all Slack interactions and commands
 
-import { App, BlockAction, SlashCommand } from '@slack/bolt';
-import axios from 'axios';
-import config from '../../shared/config/index.js';
-import { mockRewardStationAPI } from '../api-relay/mock-rewardstation.js';
-import { ChatCommand, ThanksRequest } from '../../shared/types/index.js';
+const { App } = require('@slack/bolt');
+const axios = require('axios');
+const config = require('../../shared/config/index.js');
+const { mockRewardStationAPI } = require('../api-relay/mock-rewardstation.js');
 
 // Initialize Slack app
-export const slackApp = new App({
-  token: config.slack.bot_token,
-  signingSecret: config.slack.signing_secret,
-  socketMode: false, // Use HTTP mode for production deployment
+console.log('🔧 Initializing Slack app with config:', {
+  token: config.slack.bot_token ? `${config.slack.bot_token.substring(0, 20)}...` : 'MISSING',
+  signingSecret: config.slack.signing_secret ? `${config.slack.signing_secret.substring(0, 8)}...` : 'MISSING',
+  socketMode: false
 });
 
+let slackApp;
+try {
+  slackApp = new App({
+    token: config.slack.bot_token,
+    signingSecret: config.slack.signing_secret,
+    socketMode: false, // Use HTTP mode for production deployment
+  });
+  console.log('✅ Slack app initialized successfully');
+  console.log('🔗 Slack app receiver available:', !!slackApp.receiver);
+  console.log('🔗 Slack app router available:', !!(slackApp.receiver && slackApp.receiver.router));
+} catch (error) {
+  console.error('❌ Failed to initialize Slack app:', error);
+  slackApp = null;
+}
+
 // Utility function to call Maslow X
-async function callMaslowX(endpoint: string, data: any) {
+async function callMaslowX(endpoint, data) {
   try {
     const response = await axios.post(`${config.services.maslow_agent}${endpoint}`, data);
     return response.data;
@@ -26,13 +40,13 @@ async function callMaslowX(endpoint: string, data: any) {
 }
 
 // Parse Slack user mentions
-function parseSlackMention(text: string): string | null {
+function parseSlackMention(text) {
   const match = text.match(/<@([A-Z0-9]+)>/);
   return match ? match[1] : null;
 }
 
 // Generate Block Kit for thanks celebration
-function generateThanksBlocks(nominator: string, recipient: string, message: string) {
+function generateThanksBlocks(nominator, recipient, message) {
   return [
     {
       type: "section",
@@ -252,15 +266,16 @@ slackApp.command('/rewardstation', async ({ command, ack, respond, client }) => 
     }
   } catch (error) {
     console.error('Command error:', error);
+    const errorMessage = getErrorMessage(error);
     await respond({
       response_type: 'ephemeral',
-      text: '⚠️ Something went wrong. Please try again or contact support.'
+      text: `⚠️ ${errorMessage}\n\n💡 If this continues, try:\n• Wait a moment and retry\n• Use \`/rewardstation help\` for guidance\n• Contact IT support if needed`
     });
   }
 });
 
 // Help command handler
-async function handleHelpCommand(respond: any, command: SlashCommand) {
+async function handleHelpCommand(respond, command) {
   const maslowResponse = await callMaslowX('/help', {
     type: 'help',
     context: {
@@ -286,7 +301,7 @@ async function handleHelpCommand(respond: any, command: SlashCommand) {
     if (maslowResponse.data.suggested_actions?.length > 0) {
       blocks.push({
         type: "actions",
-        elements: maslowResponse.data.suggested_actions.map((action: any) => ({
+        elements: maslowResponse.data.suggested_actions.map((action) => ({
           type: "button",
           text: {
             type: "plain_text",
@@ -311,7 +326,7 @@ async function handleHelpCommand(respond: any, command: SlashCommand) {
 }
 
 // Thanks command handler
-async function handleThanksCommand(respond: any, command: SlashCommand, client: any, fullText: string) {
+async function handleThanksCommand(respond, command, client, fullText) {
   const parts = fullText.split(' ');
   
   if (parts.length < 3) {
@@ -369,7 +384,7 @@ async function handleThanksCommand(respond: any, command: SlashCommand, client: 
     }
 
     // Create thanks recognition
-    const thanksRequest: ThanksRequest = {
+    const thanksRequest = {
       nominator_id: command.user_id,
       recipient_id: recipientMention,
       message,
@@ -378,8 +393,8 @@ async function handleThanksCommand(respond: any, command: SlashCommand, client: 
     };
 
     const recognitionResult = await mockRewardStationAPI.createRecognition({
-      nominator_employee_id: nominatorLookup.data!.employee_id!,
-      recipient_employee_id: recipientLookup.data!.employee_id!,
+      nominator_employee_id: nominatorLookup.data.employee_id,
+      recipient_employee_id: recipientLookup.data.employee_id,
       recognition_type: 'thanks',
       message,
       behavior_attributes: [],
@@ -424,15 +439,16 @@ async function handleThanksCommand(respond: any, command: SlashCommand, client: 
 
   } catch (error) {
     console.error('Thanks command error:', error);
+    const errorMessage = getErrorMessage(error);
     await respond({
       response_type: 'ephemeral',
-      text: '⚠️ Something went wrong sending thanks. Please try again.'
+      text: `⚠️ Failed to send thanks: ${errorMessage}\n\n🔄 **What to try:**\n• Check that the recipient is in your workspace\n• Verify your message is properly formatted\n• Try the command again in a few seconds`
     });
   }
 }
 
 // Give command handler (opens modal)
-async function handleGiveCommand(respond: any, command: SlashCommand, client: any) {
+async function handleGiveCommand(respond, command, client) {
   try {
     await client.views.open({
       trigger_id: command.trigger_id,
@@ -448,17 +464,17 @@ async function handleGiveCommand(respond: any, command: SlashCommand, client: an
 }
 
 // Balance command handler
-async function handleBalanceCommand(respond: any, command: SlashCommand) {
+async function handleBalanceCommand(respond, command) {
   try {
     const userLookup = await mockRewardStationAPI.lookupUserBySlackId(command.user_id);
     
     if (userLookup.success) {
-      const balanceResult = await mockRewardStationAPI.getUserBalance(userLookup.data!.employee_id!);
+      const balanceResult = await mockRewardStationAPI.getUserBalance(userLookup.data.employee_id);
       
       if (balanceResult.success) {
         await respond({
           response_type: 'ephemeral',
-          text: `💰 Your current balance: **${balanceResult.data!.balance} points**\n\n💡 Keep giving recognition to earn more points!`
+          text: `💰 Your current balance: **${balanceResult.data.balance} points**\n\n💡 Keep giving recognition to earn more points!`
         });
       } else {
         await respond({
@@ -482,7 +498,7 @@ async function handleBalanceCommand(respond: any, command: SlashCommand) {
 }
 
 // Debug command (development only)
-async function handleDebugCommand(respond: any) {
+async function handleDebugCommand(respond) {
   if (!config.is_development) {
     await respond({
       response_type: 'ephemeral',
@@ -507,7 +523,7 @@ slackApp.view('recognition_modal', async ({ ack, body, view, client }) => {
   try {
     const values = view.state.values;
     const recipient = values.recipient_block.recipient_select.selected_user;
-    const points = parseInt(values.points_block.points_select.selected_option!.value);
+    const points = parseInt(values.points_block.points_select.selected_option.value);
     const behaviors = values.behavior_block.behavior_checkboxes.selected_options?.map(opt => opt.value) || [];
     const message = values.message_block.message_input.value;
 
@@ -534,8 +550,8 @@ slackApp.view('recognition_modal', async ({ ack, body, view, client }) => {
 
     // Create recognition
     const recognitionResult = await mockRewardStationAPI.createRecognition({
-      nominator_employee_id: nominatorLookup.data!.employee_id!,
-      recipient_employee_id: recipientLookup.data!.employee_id!,
+      nominator_employee_id: nominatorLookup.data.employee_id,
+      recipient_employee_id: recipientLookup.data.employee_id,
       recognition_type: 'points',
       points,
       message,
@@ -554,7 +570,7 @@ slackApp.view('recognition_modal', async ({ ack, body, view, client }) => {
       await client.chat.postEphemeral({
         channel: body.user.id,
         user: body.user.id,
-        text: `✅ Recognition submitted! 🌟\n\n**Recipient**: <@${recipient}>\n**Points**: ${points}\n**Status**: ${recognitionResult.data!.approval_required ? 'Pending approval' : 'Delivered'}\n\n${recognitionResult.data!.approval_required ? '⏳ Your recognition will be delivered once approved.' : '🎉 Recognition delivered immediately!'}`
+        text: `✅ Recognition submitted! 🌟\n\n**Recipient**: <@${recipient}>\n**Points**: ${points}\n**Status**: ${recognitionResult.data.approval_required ? 'Pending approval' : 'Delivered'}\n\n${recognitionResult.data.approval_required ? '⏳ Your recognition will be delivered once approved.' : '🎉 Recognition delivered immediately!'}`
       });
 
       console.log('Recognition created:', recognitionResult.data);
@@ -565,6 +581,26 @@ slackApp.view('recognition_modal', async ({ ack, body, view, client }) => {
   }
 });
 
+// Enhanced error handling utility
+function getErrorMessage(error) {
+  if (error.code === 'slack_webapi_platform_error') {
+    return 'Slack API temporarily unavailable';
+  }
+  if (error.code === 'ECONNRESET' || error.code === 'ENOTFOUND') {
+    return 'Network connectivity issue';
+  }
+  if (error.message?.includes('invalid_auth')) {
+    return 'Authentication error - please contact IT';
+  }
+  if (error.message?.includes('rate_limited')) {
+    return 'Too many requests - please wait a moment';
+  }
+  if (error.message?.includes('timeout')) {
+    return 'Request timed out - system may be busy';
+  }
+  return 'Unexpected error occurred';
+}
+
 console.log('🚀 Slack bot initialized');
 
-export default slackApp;
+module.exports = { slackApp: slackApp || { receiver: { router: null } }, getErrorMessage };

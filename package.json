@@ -3,7 +3,6 @@
   "version": "1.0.0-poc",
   "description": "RewardStation Chat Integration - AI-powered recognition platform for Slack and Teams",
   "main": "services/chat-gateway/index.js",
-  "type": "module",
   "scripts": {
     "start": "node services/chat-gateway/index.js",
     "dev": "concurrently \"npm run dev:gateway\" \"npm run dev:maslow\"",
@@ -19,32 +18,34 @@
     "poc": "echo '🚀 Starting RewardStation POC...' && npm run dev"
   },
   "keywords": [
-    "rewardstation", 
-    "slack", 
-    "teams", 
-    "ai", 
-    "recognition", 
-    "collaboration", 
+    "rewardstation",
+    "slack",
+    "teams",
+    "ai",
+    "recognition",
+    "collaboration",
     "xceleration"
   ],
   "author": "Chris W <chrisw@xceleration.com>",
   "license": "MIT",
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.24.3",
     "@slack/bolt": "^3.17.1",
-    "express": "^4.19.2",
-    "dotenv": "^16.4.5",
     "axios": "^1.7.2",
-    "@anthropic-ai/sdk": "^0.24.3"
+    "botbuilder": "^4.22.3",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-rate-limit": "^8.0.1"
   },
   "devDependencies": {
-    "nodemon": "^3.1.4",
-    "concurrently": "^8.2.2",
-    "jest": "^29.7.0",
-    "eslint": "^8.57.0",
-    "prettier": "^3.3.2",
     "@types/node": "^20.14.10",
-    "typescript": "^5.5.4",
-    "ts-node": "^10.9.2"
+    "concurrently": "^8.2.2",
+    "eslint": "^8.57.0",
+    "jest": "^29.7.0",
+    "nodemon": "^3.1.4",
+    "prettier": "^3.3.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.4"
   },
   "engines": {
     "node": ">=18.0.0"

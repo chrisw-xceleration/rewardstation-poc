@@ -1,0 +1,41 @@
+{
+  "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.16/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.16",
+  "version": "1.0.3",
+  "id": "d27bc7e5-4e8f-4fb8-b9c2-b5812f007efc",
+  "developer": {
+    "name": "Xceleration Partners",
+    "websiteUrl": "https://rewardstation-poc.fly.dev",
+    "privacyUrl": "https://rewardstation-poc.fly.dev/privacy",
+    "termsOfUseUrl": "https://rewardstation-poc.fly.dev/terms"
+  },
+  "icons": {
+    "color": "icon-color-192.png",
+    "outline": "icon-outline-32.png"
+  },
+  "name": {
+    "short": "RewardStation",
+    "full": "RewardStation AI Recognition Platform"
+  },
+  "description": {
+    "short": "AI-powered employee recognition in Teams",
+    "full": "The world's first AI-powered recognition platform with native Teams support. Recognize great work with intelligent message enhancement and B2B approval workflows."
+  },
+  "accentColor": "#512BD4",
+  "staticTabs": [
+    {
+      "entityId": "rewardstation-personal-tab",
+      "name": "RewardStation",
+      "contentUrl": "https://rewardstation-poc.fly.dev/teams",
+      "websiteUrl": "https://rewardstation-poc.fly.dev",
+      "scopes": ["personal"]
+    }
+  ],
+  "permissions": [
+    "identity",
+    "messageTeamMembers"
+  ],
+  "validDomains": [
+    "rewardstation-poc.fly.dev"
+  ]
+}

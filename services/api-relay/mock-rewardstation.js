@@ -1,23 +1,22 @@
 // Mock RewardStation API for POC development
 // This simulates the real RewardStation APIs until integration is ready
 
-import { RecognitionRequest, RecognitionResponse, User, MockApiResponse } from '../../shared/types/index.js';
+// Mock RewardStation API for POC development
+// This simulates the real RewardStation APIs until integration is ready
 
-export class MockRewardStationAPI {
-  private users: Map<string, User> = new Map();
-  private recognitions: Map<string, any> = new Map();
-
+class MockRewardStationAPI {
   constructor() {
-    // Seed with some mock users
+    this.users = new Map();
+    this.recognitions = new Map();
     this.seedMockUsers();
   }
 
-  private seedMockUsers() {
+  seedMockUsers() {
     const mockUsers = [
-      { id: 'emp_001', email: 'john.doe@xceleration.com', name: 'John Doe', platform: 'slack' as const, platform_user_id: 'U1234567890' },
-      { id: 'emp_002', email: 'jane.smith@xceleration.com', name: 'Jane Smith', platform: 'slack' as const, platform_user_id: 'U1234567891' },
-      { id: 'emp_003', email: 'mike.wilson@xceleration.com', name: 'Mike Wilson', platform: 'slack' as const, platform_user_id: 'U1234567892' },
-      { id: 'emp_004', email: 'sarah.johnson@xceleration.com', name: 'Sarah Johnson', platform: 'slack' as const, platform_user_id: 'U1234567893' },
+      { id: 'emp_001', email: 'john.doe@xceleration.com', name: 'John Doe', platform: 'slack', platform_user_id: 'U1234567890' },
+      { id: 'emp_002', email: 'jane.smith@xceleration.com', name: 'Jane Smith', platform: 'slack', platform_user_id: 'U1234567891' },
+      { id: 'emp_003', email: 'mike.wilson@xceleration.com', name: 'Mike Wilson', platform: 'slack', platform_user_id: 'U1234567892' },
+      { id: 'emp_004', email: 'sarah.johnson@xceleration.com', name: 'Sarah Johnson', platform: 'slack', platform_user_id: 'U1234567893' },
     ];
 
     mockUsers.forEach(user => {
@@ -29,7 +28,7 @@ export class MockRewardStationAPI {
   }
 
   // Mock authentication endpoint
-  async authenticate(token: string): Promise<MockApiResponse<{ access_token: string }>> {
+  async authenticate(token) {
     console.log('🔐 Mock RewardStation Authentication');
     
     return {
@@ -42,7 +41,7 @@ export class MockRewardStationAPI {
   }
 
   // Mock user lookup endpoint
-  async lookupUser(email: string): Promise<MockApiResponse<User>> {
+  async lookupUser(email) {
     console.log(`👤 Mock User Lookup: ${email}`);
     
     const user = this.users.get(email);
@@ -63,7 +62,7 @@ export class MockRewardStationAPI {
   }
 
   // Mock user lookup by Slack ID
-  async lookupUserBySlackId(slackId: string): Promise<MockApiResponse<User>> {
+  async lookupUserBySlackId(slackId) {
     console.log(`👤 Mock User Lookup by Slack ID: ${slackId}`);
     
     for (const user of this.users.values()) {
@@ -77,7 +76,7 @@ export class MockRewardStationAPI {
     }
 
     // Create a mock user if not found (for demo purposes)
-    const mockUser: User = {
+    const mockUser = {
       id: `emp_${Date.now()}`,
       email: `user.${slackId}@xceleration.com`,
       name: `Mock User ${slackId.slice(-4)}`,
@@ -96,12 +95,12 @@ export class MockRewardStationAPI {
   }
 
   // Mock recognition creation endpoint
-  async createRecognition(request: RecognitionRequest): Promise<MockApiResponse<RecognitionResponse>> {
+  async createRecognition(request) {
     console.log('🎉 Mock Recognition Creation:', request);
     
     const recognition_id = `rec_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
-    const response: RecognitionResponse = {
+    const response = {
       recognition_id,
       status: request.recognition_type === 'thanks' ? 'delivered' : 'submitted',
       approval_required: request.recognition_type === 'points',
@@ -123,7 +122,7 @@ export class MockRewardStationAPI {
   }
 
   // Mock recognition status check
-  async getRecognitionStatus(recognition_id: string): Promise<MockApiResponse<RecognitionResponse>> {
+  async getRecognitionStatus(recognition_id) {
     console.log(`📊 Mock Recognition Status Check: ${recognition_id}`);
     
     const recognition = this.recognitions.get(recognition_id);
@@ -150,7 +149,7 @@ export class MockRewardStationAPI {
   }
 
   // Mock user balance check
-  async getUserBalance(employee_id: string): Promise<MockApiResponse<{ balance: number }>> {
+  async getUserBalance(employee_id) {
     console.log(`💰 Mock Balance Check: ${employee_id}`);
     
     // Return a random balance for demo
@@ -164,7 +163,7 @@ export class MockRewardStationAPI {
   }
 
   // Mock company behavior attributes
-  async getBehaviorAttributes(): Promise<MockApiResponse<string[]>> {
+  async getBehaviorAttributes() {
     console.log('🎯 Mock Behavior Attributes');
     
     const attributes = [
@@ -195,4 +194,6 @@ export class MockRewardStationAPI {
 }
 
 // Singleton instance
-export const mockRewardStationAPI = new MockRewardStationAPI();
+const mockRewardStationAPI = new MockRewardStationAPI();
+
+module.exports = { mockRewardStationAPI };

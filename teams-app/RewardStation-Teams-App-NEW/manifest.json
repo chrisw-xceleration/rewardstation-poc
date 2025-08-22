@@ -1,0 +1,70 @@
+{
+  "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.16/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.16",
+  "version": "1.0.1",
+  "id": "cf85ae6b-cdf3-4831-bce4-539d7940bcaa",
+  "packageName": "com.xceleration.rewardstation",
+  "developer": {
+    "name": "Xceleration Partners",
+    "websiteUrl": "https://rewardstation-poc.fly.dev",
+    "privacyUrl": "https://rewardstation-poc.fly.dev/privacy",
+    "termsOfUseUrl": "https://rewardstation-poc.fly.dev/terms"
+  },
+  "icons": {
+    "color": "icon-color-192.png",
+    "outline": "icon-outline-32.png"
+  },
+  "name": {
+    "short": "RewardStation",
+    "full": "RewardStation AI Recognition Platform"
+  },
+  "description": {
+    "short": "AI-powered employee recognition in Teams",
+    "full": "The world's first AI-powered recognition platform with native Teams support. Recognize great work with intelligent message enhancement and B2B approval workflows."
+  },
+  "accentColor": "#512BD4",
+  "bots": [
+    {
+      "botId": "cf85ae6b-cdf3-4831-bce4-539d7940bcaa",
+      "scopes": ["personal", "team", "groupchat"],
+      "isNotificationOnly": false,
+      "supportsFiles": false,
+      "supportsCalling": false,
+      "supportsVideo": false,
+      "commandLists": [
+        {
+          "scopes": ["personal", "team", "groupchat"],
+          "commands": [
+            {
+              "title": "help",
+              "description": "Show available commands and AI assistance"
+            },
+            {
+              "title": "thanks @user \"message\"",
+              "description": "Send quick thanks with 25 points"
+            },
+            {
+              "title": "give @user",
+              "description": "Open interactive recognition form"
+            },
+            {
+              "title": "balance",
+              "description": "Check your current points balance"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "permissions": [
+    "identity",
+    "messageTeamMembers"
+  ],
+  "validDomains": [
+    "rewardstation-poc.fly.dev"
+  ],
+  "webApplicationInfo": {
+    "id": "cf85ae6b-cdf3-4831-bce4-539d7940bcaa",
+    "resource": "https://graph.microsoft.com"
+  }
+}

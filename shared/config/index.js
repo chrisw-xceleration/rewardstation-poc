@@ -1,8 +1,8 @@
-import dotenv from 'dotenv';
+const dotenv = require('dotenv');
 
 dotenv.config();
 
-export const config = {
+const config = {
   // Server configuration
   port: parseInt(process.env.PORT || '3000'),
   environment: process.env.NODE_ENV || 'development',
@@ -28,10 +28,10 @@ export const config = {
     client_secret: process.env.REWARDSTATION_CLIENT_SECRET || 'mock_rewardstation_secret',
   },
   
-  // AI/Claude configuration
+  // AI/Claude configuration  
   claude: {
-    api_key: process.env.CLAUDE_API_KEY || '', // Will need real key
-    model: 'claude-sonnet-4-20250514',
+    api_key: process.env.CLAUDE_API_KEY || '', // Will need real key for production
+    model: process.env.CLAUDE_MODEL || 'claude-3-5-sonnet-20241022',
   },
   
   // Redis/Upstash (for caching and rate limiting)
@@ -49,6 +49,16 @@ export const config = {
     maslow_agent: process.env.MASLOW_AGENT_URL || 'http://localhost:3001',
     api_relay: process.env.API_RELAY_URL || 'http://localhost:3002',
     auth_service: process.env.AUTH_SERVICE_URL || 'http://localhost:3003',
+    workflow_service: process.env.WORKFLOW_SERVICE_URL || 'http://localhost:3004',
+  },
+
+  // LittleHorse workflow orchestration
+  littlehorse: {
+    enabled: false, // Temporarily disabled due to deployment issues
+    apiHost: process.env.LITTLEHORSE_API_HOST || 'localhost',
+    apiPort: parseInt(process.env.LITTLEHORSE_API_PORT || '2023'),
+    clientId: process.env.LITTLEHORSE_CLIENT_ID || 'rewardstation-client',
+    clientSecret: process.env.LITTLEHORSE_CLIENT_SECRET || 'rewardstation-secret',
   },
   
   // Development flags
@@ -57,4 +67,4 @@ export const config = {
   log_level: process.env.LOG_LEVEL || 'info',
 };
 
-export default config;
+module.exports = config;
