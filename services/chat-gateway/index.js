@@ -77,14 +77,19 @@ app.get('/', (req, res) => {
 });
 
 // Load platform integrations
-// Slack Bot integration
-const { slackApp } = require('./slack-bot');
-if (slackApp && slackApp.receiver && slackApp.receiver.router) {
-  app.use('/slack/events', slackApp.receiver.router);
-  console.log('✅ Slack integration loaded');
-} else {
-  console.log('⚠️ Slack integration not available - check credentials');
-}
+// Use simple Slack handler for now (SDK having issues)
+const slackRouter = require('./slack-simple');
+app.use('/slack', slackRouter);
+console.log('✅ Slack simple handler loaded');
+
+// Original Slack Bot integration (disabled due to initialization issues)
+// const { slackApp } = require('./slack-bot');
+// if (slackApp && slackApp.receiver && slackApp.receiver.router) {
+//   app.use('/slack/events', slackApp.receiver.router);
+//   console.log('✅ Slack integration loaded');
+// } else {
+//   console.log('⚠️ Slack integration not available - check credentials');
+// }
 
 // Teams interface from separate module
 require('./teams-clean')(app);
