@@ -1,4 +1,4 @@
-// Maslow X - AI Assistant Service
+// Maslow Insights - AI Assistant Service
 // Provides intelligent help and message enhancement using Claude
 
 const express = require('express');
@@ -13,22 +13,22 @@ const anthropic = config.claude.api_key ? new Anthropic({
   apiKey: config.claude.api_key,
 }) : null;
 
-// Claude X - AI Recognition Expert
-class MaslowXAI {
+// Maslow Insights - AI Recognition Expert
+class MaslowInsightsAI {
   async generateHelp(request) {
-    console.log('🤖 Maslow X Help Request:', request.type);
+    console.log('🤖 Maslow Insights Help Request:', request.type);
     
     const responses = {
       basic_help: {
         response_text: `🎉 **Welcome to RewardStation!**
 
-I'm Maslow X, your AI assistant for recognition and rewards.
+I'm Maslow Insights, your AI assistant for recognition and rewards.
 
 **Quick Commands:**
-• \`/rewardstation thanks @user "message"\` - Send quick thanks
-• \`/rewardstation give @user\` - Give points and formal recognition  
-• \`/rewardstation balance\` - Check your points balance
-• \`/rewardstation help\` - Get this help message
+• \`/thanks @user "message"\` - Quick 25-point appreciation
+• \`/give @user\` - Opens modal for formal recognition (50-500 points)  
+• \`/balance\` - Check your point balance and statistics
+• \`/help\` - AI-powered contextual assistance
 
 **Pro Tips:**
 ✨ I can help enhance your recognition messages
@@ -37,20 +37,20 @@ I'm Maslow X, your AI assistant for recognition and rewards.
 
 *What would you like to do first?*`,
         suggested_actions: [
-          { text: "Send Thanks", command: "/rewardstation thanks @teammate" },
-          { text: "Give Points", command: "/rewardstation give @teammate" },
-          { text: "Check Balance", command: "/rewardstation balance" }
+          { text: "Send Thanks", command: "/thanks @teammate" },
+          { text: "Give Points", command: "/give @teammate" },
+          { text: "Check Balance", command: "/balance" }
         ]
       },
       
       thanks_help: {
         response_text: `💝 **Thanks Command Help**
 
-Use: \`/rewardstation thanks @user "your message"\`
+Use: \`/thanks @user "your message"\`
 
 **Examples:**
-• \`/rewardstation thanks @sarah "Great job on the presentation!"\`
-• \`/rewardstation thanks @team "Thanks for staying late to finish the project"\`
+• \`/thanks @sarah "Great job on the presentation!"\`
+• \`/thanks @team "Thanks for staying late to finish the project"\`
 
 **Tips:**
 • Be specific about what you're thanking them for
@@ -290,13 +290,13 @@ Return as JSON with keys: "professional", "personal", "concise"`;
   }
 }
 
-const maslowX = new MaslowXAI();
+const maslowInsights = new MaslowInsightsAI();
 
 // Maslow X help endpoint
 app.post('/help', async (req, res) => {
   try {
     const request = req.body;
-    const response = await maslowX.generateHelp(request);
+    const response = await maslowInsights.generateHelp(request);
     res.json({ success: true, data: response });
   } catch (error) {
     console.error('Maslow X help error:', error);
@@ -311,7 +311,7 @@ app.post('/help', async (req, res) => {
 app.post('/enhance-message', async (req, res) => {
   try {
     const { message, context } = req.body;
-    const response = await maslowX.enhanceMessage(message, context);
+    const response = await maslowInsights.enhanceMessage(message, context);
     res.json({ success: true, data: response });
   } catch (error) {
     console.error('Message enhancement error:', error);
@@ -326,7 +326,7 @@ app.post('/enhance-message', async (req, res) => {
 app.post('/enhance-message-options', async (req, res) => {
   try {
     const { message, context } = req.body;
-    const response = await maslowX.enhanceMessageOptions(message, context);
+    const response = await maslowInsights.enhanceMessageOptions(message, context);
     res.json({ success: true, data: response });
   } catch (error) {
     console.error('Message enhancement options error:', error);
@@ -341,7 +341,7 @@ app.post('/enhance-message-options', async (req, res) => {
 app.post('/suggest-behavior', async (req, res) => {
   try {
     const { message } = req.body;
-    const behaviors = await maslowX.suggestBehaviors(message);
+    const behaviors = await maslowInsights.suggestBehaviors(message);
     res.json({ success: true, data: behaviors });
   } catch (error) {
     console.error('Behavior suggestion error:', error);

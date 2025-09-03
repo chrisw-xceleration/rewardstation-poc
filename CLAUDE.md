@@ -37,13 +37,13 @@ shared/
 
 ## Key Features Implemented
 ### ✅ Core Slack Commands
-- `/rewardstation help` - AI-powered help with contextual guidance
-- `/rewardstation thanks @user "message"` - Quick thanks recognition
-- `/rewardstation give @user` - Structured recognition with points/behaviors
-- `/rewardstation balance` - Point balance checking
-- `/rewardstation debug` - Development debugging info
+- `/help` - AI-powered contextual assistance from Maslow Insights
+- `/thanks @user "message"` - Quick 25-point appreciation
+- `/give @user` - Opens modal for formal recognition (50-500 points)
+- `/balance` - Check your point balance and statistics
+- `/rewardstation` - Legacy command for backward compatibility
 
-### ✅ AI Assistant (Maslow X)
+### ✅ AI Assistant (Maslow Insights)
 - Contextual help and guidance
 - Message enhancement suggestions  
 - Behavior attribute recommendations
@@ -103,10 +103,10 @@ See `docs/QUICK_START.md` for complete setup instructions.
 
 ## Demo Script
 **For stakeholders:**
-1. **AI Help**: `/rewardstation help` - Show intelligent assistance
-2. **Quick Recognition**: `/rewardstation thanks @someone "Great work!"` 
-3. **Structured Recognition**: `/rewardstation give @someone` - Full modal
-4. **Check Balance**: `/rewardstation balance` - Integration proof
+1. **AI Help**: `/help` - Show intelligent assistance from Maslow Insights
+2. **Quick Recognition**: `/thanks @someone "Great work!"` - 25 points instantly
+3. **Structured Recognition**: `/give @someone` - Full modal (50-500 points)
+4. **Check Balance**: `/balance` - Integration proof with statistics
 
 **Key selling points:**
 - ⚡ 10-second recognition flow

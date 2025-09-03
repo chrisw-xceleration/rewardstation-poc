@@ -13,10 +13,10 @@
 ## 🌟 Features Complete
 
 ### ✅ Slack Integration (Production Ready)
-- **AI-Powered Help**: `/rewardstation help` - Contextual guidance with Maslow X
-- **Quick Thanks**: `/rewardstation thanks @user "message"` - Instant recognition
-- **Structured Recognition**: `/rewardstation give @user` - Points, behaviors, AI enhancement
-- **Balance Checking**: `/rewardstation balance` - Point balance and statistics
+- **AI-Powered Help**: `/help` - Contextual guidance with Maslow Insights
+- **Quick Thanks**: `/thanks @user "message"` - Quick 25-point appreciation
+- **Structured Recognition**: `/give @user` - Opens modal for formal recognition (50-500 points)
+- **Balance Checking**: `/balance` - Check your point balance and statistics
 - **Two-Step AI Enhancement**: B2B approval workflow with message optimization
 
 ### ✅ Teams Integration (Production Ready)
@@ -27,7 +27,7 @@
 - **Theme Adaptive**: Automatic light/dark/contrast mode detection
 - **Professional Modals**: Clean form interfaces with validation
 
-### ✅ AI Assistant (Maslow X)
+### ✅ AI Assistant (Maslow Insights)
 - 25 years of B2B recognition expertise
 - Message enhancement suggestions
 - Behavior attribute recommendations  
@@ -45,11 +45,11 @@
 | Feature Category | Slack Integration | Teams Integration | Status |
 |------------------|------------------|-------------------|---------|
 | **Core Recognition** | | | |
-| Quick Thanks | ✅ `/rewardstation thanks @user "message"` | ✅ Dashboard button with recipient dropdown | Both Complete |
-| Formal Recognition | ✅ `/rewardstation give @user` with modal | ✅ Recognition modal with points & behaviors | Both Complete |
-| AI Enhancement | ✅ Maslow X message optimization | 🔄 Coming in Phase 2 | Slack Complete |
+| Quick Thanks | ✅ `/thanks @user "message"` | ✅ Dashboard button with recipient dropdown | Both Complete |
+| Formal Recognition | ✅ `/give @user` with modal | ✅ Recognition modal with points & behaviors | Both Complete |
+| AI Enhancement | ✅ Maslow Insights message optimization | 🔄 Coming in Phase 2 | Slack Complete |
 | **User Interface** | | | |
-| Interaction Pattern | Command-driven (`/rewardstation`) | Dashboard-driven (action buttons) | Both Complete |
+| Interaction Pattern | Command-driven (simplified commands) | Dashboard-driven (action buttons) | Both Complete |
 | Modal Support | ✅ Block Kit modals with validation | ✅ Custom HTML modals with validation | Both Complete |
 | Theme Support | ✅ Slack theme compatibility | ✅ Light/Dark/Contrast auto-detection | Both Complete |
 | **User Experience** | | | |

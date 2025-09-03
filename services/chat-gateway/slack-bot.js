@@ -225,7 +225,34 @@ function generateRecognitionModal() {
   };
 }
 
-// Main slash command handler
+// Main slash command handlers
+// Help command
+slackApp.command('/help', async ({ command, ack, respond, client }) => {
+  await ack();
+  await handleHelp(command, respond);
+});
+
+// Thanks command
+slackApp.command('/thanks', async ({ command, ack, respond, client }) => {
+  await ack();
+  const text = command.text.trim();
+  await handleThanks({ ...command, text: text }, respond, client);
+});
+
+// Give command  
+slackApp.command('/give', async ({ command, ack, respond, client }) => {
+  await ack();
+  const text = command.text.trim();
+  await handleGive({ ...command, text: text }, respond, client);
+});
+
+// Balance command
+slackApp.command('/balance', async ({ command, ack, respond, client }) => {
+  await ack();
+  await handleBalance(command, respond);
+});
+
+// Legacy handler for backward compatibility
 slackApp.command('/rewardstation', async ({ command, ack, respond, client }) => {
   await ack();
 
@@ -261,7 +288,7 @@ slackApp.command('/rewardstation', async ({ command, ack, respond, client }) => 
       default:
         await respond({
           response_type: 'ephemeral',
-          text: `❓ Unknown command: \`${subcommand}\`\n\nTry \`/rewardstation help\` for available commands.`
+          text: `❓ Unknown command: \`${subcommand}\`\n\nTry \`/help\` for available commands.`
         });
     }
   } catch (error) {
@@ -269,7 +296,7 @@ slackApp.command('/rewardstation', async ({ command, ack, respond, client }) => 
     const errorMessage = getErrorMessage(error);
     await respond({
       response_type: 'ephemeral',
-      text: `⚠️ ${errorMessage}\n\n💡 If this continues, try:\n• Wait a moment and retry\n• Use \`/rewardstation help\` for guidance\n• Contact IT support if needed`
+      text: `⚠️ ${errorMessage}\n\n💡 If this continues, try:\n• Wait a moment and retry\n• Use \`/help\` for guidance\n• Contact IT support if needed`
     });
   }
 });
@@ -320,7 +347,7 @@ async function handleHelpCommand(respond, command) {
   } else {
     await respond({
       response_type: 'ephemeral',
-      text: `🤖 **RewardStation Help**\n\n• \`/rewardstation thanks @user "message"\` - Send quick thanks\n• \`/rewardstation give @user\` - Give points and recognition\n• \`/rewardstation balance\` - Check your points\n• \`/rewardstation help\` - Show this help`
+      text: `🤖 **Maslow Insights Help**\n\n• \`/thanks @user "message"\` - Quick 25-point appreciation\n• \`/give @user\` - Opens modal for formal recognition (50-500 points)\n• \`/balance\` - Check your point balance and statistics\n• \`/help\` - AI-powered contextual assistance`
     });
   }
 }
