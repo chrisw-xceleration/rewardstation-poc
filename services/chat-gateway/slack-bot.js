@@ -7,24 +7,33 @@ const config = require('../../shared/config/index.js');
 const { mockRewardStationAPI } = require('../api-relay/mock-rewardstation.js');
 
 // Initialize Slack app
+const hasToken = !!config.slack.bot_token && config.slack.bot_token !== 'xoxb-mock-bot-token';
+const hasSecret = !!config.slack.signing_secret && config.slack.signing_secret !== 'mock-signing-secret';
+
 console.log('🔧 Initializing Slack app with config:', {
-  token: config.slack.bot_token ? `${config.slack.bot_token.substring(0, 20)}...` : 'MISSING',
-  signingSecret: config.slack.signing_secret ? `${config.slack.signing_secret.substring(0, 8)}...` : 'MISSING',
-  socketMode: false
+  token: hasToken ? `${config.slack.bot_token.substring(0, 20)}...` : 'MISSING/MOCK',
+  signingSecret: hasSecret ? `${config.slack.signing_secret.substring(0, 8)}...` : 'MISSING/MOCK',
+  socketMode: false,
+  hasValidCredentials: hasToken && hasSecret
 });
 
 let slackApp;
-try {
-  slackApp = new App({
-    token: config.slack.bot_token,
-    signingSecret: config.slack.signing_secret,
-    socketMode: false, // Use HTTP mode for production deployment
-  });
-  console.log('✅ Slack app initialized successfully');
-  console.log('🔗 Slack app receiver available:', !!slackApp.receiver);
-  console.log('🔗 Slack app router available:', !!(slackApp.receiver && slackApp.receiver.router));
-} catch (error) {
-  console.error('❌ Failed to initialize Slack app:', error);
+if (hasToken && hasSecret) {
+  try {
+    slackApp = new App({
+      token: config.slack.bot_token,
+      signingSecret: config.slack.signing_secret,
+      socketMode: false, // Use HTTP mode for production deployment
+    });
+    console.log('✅ Slack app initialized successfully');
+    console.log('🔗 Slack app receiver available:', !!slackApp.receiver);
+    console.log('🔗 Slack app router available:', !!(slackApp.receiver && slackApp.receiver.router));
+  } catch (error) {
+    console.error('❌ Failed to initialize Slack app:', error.message);
+    slackApp = null;
+  }
+} else {
+  console.log('⚠️ Slack app not initialized - missing credentials');
   slackApp = null;
 }
 
