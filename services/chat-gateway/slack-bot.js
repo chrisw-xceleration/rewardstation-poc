@@ -234,35 +234,36 @@ function generateRecognitionModal() {
   };
 }
 
-// Main slash command handlers
-// Help command
-slackApp.command('/help', async ({ command, ack, respond, client }) => {
-  await ack();
-  await handleHelp(command, respond);
-});
+// Main slash command handlers - only register if app is initialized
+if (slackApp) {
+  // Help command
+  slackApp.command('/help', async ({ command, ack, respond, client }) => {
+    await ack();
+    await handleHelp(command, respond);
+  });
 
-// Thanks command
-slackApp.command('/thanks', async ({ command, ack, respond, client }) => {
-  await ack();
-  const text = command.text.trim();
-  await handleThanks({ ...command, text: text }, respond, client);
-});
+  // Thanks command
+  slackApp.command('/thanks', async ({ command, ack, respond, client }) => {
+    await ack();
+    const text = command.text.trim();
+    await handleThanks({ ...command, text: text }, respond, client);
+  });
 
-// Give command  
-slackApp.command('/give', async ({ command, ack, respond, client }) => {
-  await ack();
-  const text = command.text.trim();
-  await handleGive({ ...command, text: text }, respond, client);
-});
+  // Give command  
+  slackApp.command('/give', async ({ command, ack, respond, client }) => {
+    await ack();
+    const text = command.text.trim();
+    await handleGive({ ...command, text: text }, respond, client);
+  });
 
-// Balance command
-slackApp.command('/balance', async ({ command, ack, respond, client }) => {
-  await ack();
-  await handleBalance(command, respond);
-});
+  // Balance command
+  slackApp.command('/balance', async ({ command, ack, respond, client }) => {
+    await ack();
+    await handleBalance(command, respond);
+  });
 
-// Legacy handler for backward compatibility
-slackApp.command('/rewardstation', async ({ command, ack, respond, client }) => {
+  // Legacy handler for backward compatibility
+  slackApp.command('/rewardstation', async ({ command, ack, respond, client }) => {
   await ack();
 
   const text = command.text.trim();
@@ -308,7 +309,8 @@ slackApp.command('/rewardstation', async ({ command, ack, respond, client }) => 
       text: `⚠️ ${errorMessage}\n\n💡 If this continues, try:\n• Wait a moment and retry\n• Use \`/help\` for guidance\n• Contact IT support if needed`
     });
   }
-});
+  });
+} // End of slackApp command registration
 
 // Help command handler
 async function handleHelpCommand(respond, command) {
@@ -553,7 +555,9 @@ async function handleDebugCommand(respond) {
 }
 
 // Handle modal submission
-slackApp.view('recognition_modal', async ({ ack, body, view, client }) => {
+// Modal submission handler - only register if app is initialized
+if (slackApp) {
+  slackApp.view('recognition_modal', async ({ ack, body, view, client }) => {
   await ack();
 
   try {
@@ -615,7 +619,8 @@ slackApp.view('recognition_modal', async ({ ack, body, view, client }) => {
   } catch (error) {
     console.error('Modal submission error:', error);
   }
-});
+  });
+} // End of modal handler registration
 
 // Enhanced error handling utility
 function getErrorMessage(error) {
