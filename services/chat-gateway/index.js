@@ -76,7 +76,17 @@ app.get('/', (req, res) => {
   });
 });
 
-// Load Teams interface from separate module
+// Load platform integrations
+// Slack Bot integration
+const { slackApp } = require('./slack-bot');
+if (slackApp && slackApp.receiver && slackApp.receiver.router) {
+  app.use('/slack/events', slackApp.receiver.router);
+  console.log('✅ Slack integration loaded');
+} else {
+  console.log('⚠️ Slack integration not available - check credentials');
+}
+
+// Teams interface from separate module
 require('./teams-clean')(app);
 
 const PORT = process.env.PORT || 3000;
