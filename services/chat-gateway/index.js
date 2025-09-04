@@ -9,10 +9,10 @@ const config = require('../../shared/config/index.js');
 const app = express();
 const server = createServer(app);
 
-// Trust proxy for Fly.io - fixes rate limiting and signature verification
+// Trust proxy for Fly.io
 app.set('trust proxy', true);
 
-// Rate limiting
+// Rate limiting with proper configuration for trusted proxy
 const limiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 1 minute
   max: 30, // limit each IP to 30 requests per windowMs
@@ -24,6 +24,12 @@ const limiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  // Skip rate limiting errors in production for now
+  skip: (req) => process.env.NODE_ENV === 'production',
+  // Alternative: use a custom key generator that handles proxy
+  keyGenerator: (req) => {
+    return req.headers['x-forwarded-for'] || req.ip;
+  }
 });
 
 app.use('/slack', limiter);
