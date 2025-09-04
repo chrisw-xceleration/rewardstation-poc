@@ -29,7 +29,22 @@ const limiter = rateLimit({
 app.use('/slack', limiter);
 app.use('/teams', limiter);
 
-// Middleware
+// CRITICAL: Capture raw body BEFORE other parsers for Slack signature verification
+app.use('/slack/events', 
+  express.raw({ type: 'application/x-www-form-urlencoded' }),
+  (req, res, next) => {
+    // Store raw body for signature verification
+    if (Buffer.isBuffer(req.body)) {
+      req.rawBody = req.body.toString('utf8');
+      // Now parse the body for use
+      const params = new URLSearchParams(req.rawBody);
+      req.body = Object.fromEntries(params);
+    }
+    next();
+  }
+);
+
+// Regular middleware for other routes
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

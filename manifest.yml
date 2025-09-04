@@ -1,0 +1,74 @@
+display_information:
+  name: RewardStation POC
+  description: AI-powered recognition platform with Maslow Insights
+  background_color: "#4A90E2"
+  long_description: The world's first AI-powered recognition platform with native Slack integration. Features Maslow Insights AI assistant for contextual help, quick thanks recognition, and structured recognition with points and behavior attributes.
+
+features:
+  app_home:
+    home_tab_enabled: false
+    messages_tab_enabled: true
+    messages_tab_read_only_enabled: false
+  bot_user:
+    display_name: RewardStation
+    always_online: true
+  slash_commands:
+    - command: /help
+      url: https://rewardstation-poc.fly.dev/slack/events
+      description: AI-powered contextual assistance from Maslow Insights
+      usage_hint: Get help and guidance
+      should_escape: false
+    - command: /thanks
+      url: https://rewardstation-poc.fly.dev/slack/events
+      description: Quick 25-point appreciation
+      usage_hint: '@user "your message"'
+      should_escape: false
+    - command: /give
+      url: https://rewardstation-poc.fly.dev/slack/events
+      description: Opens modal for formal recognition (50-500 points)
+      usage_hint: '@user'
+      should_escape: false
+    - command: /balance
+      url: https://rewardstation-poc.fly.dev/slack/events
+      description: Check your point balance and statistics
+      usage_hint: View your points
+      should_escape: false
+    - command: /rewardstation
+      url: https://rewardstation-poc.fly.dev/slack/events
+      description: Legacy command (use new simplified commands)
+      usage_hint: 'help | thanks @user "message" | give @user | balance'
+      should_escape: false
+
+oauth_config:
+  scopes:
+    bot:
+      - channels:history
+      - channels:read
+      - chat:write
+      - chat:write.public
+      - commands
+      - groups:history
+      - groups:read
+      - im:history
+      - im:read
+      - im:write
+      - mpim:history
+      - mpim:read
+      - users:read
+      - users:read.email
+
+settings:
+  event_subscriptions:
+    request_url: https://rewardstation-poc.fly.dev/slack/events
+    bot_events:
+      - app_mention
+      - message.channels
+      - message.groups
+      - message.im
+      - message.mpim
+  interactivity:
+    is_enabled: true
+    request_url: https://rewardstation-poc.fly.dev/slack/events
+  org_deploy_enabled: false
+  socket_mode_enabled: false
+  token_rotation_enabled: false

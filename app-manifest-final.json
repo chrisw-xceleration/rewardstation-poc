@@ -1,0 +1,76 @@
+{
+  "display_information": {
+    "name": "RewardStation POC",
+    "description": "AI-powered recognition platform with Maslow Insights",
+    "background_color": "#4A90E2",
+    "long_description": "The world's first AI-powered recognition platform with native Slack integration. Features Maslow Insights AI assistant for contextual help, quick thanks recognition, and structured recognition with points and behavior attributes. Designed to increase recognition frequency by 200% through friction-free chat integration."
+  },
+  "features": {
+    "bot_user": {
+      "display_name": "RewardStation",
+      "always_online": true
+    },
+    "slash_commands": [
+      {
+        "command": "/help",
+        "url": "https://rewardstation-poc.fly.dev/slack/events",
+        "description": "AI-powered contextual assistance from Maslow Insights",
+        "usage_hint": "Get help and guidance",
+        "should_escape": false
+      },
+      {
+        "command": "/thanks",
+        "url": "https://rewardstation-poc.fly.dev/slack/events",
+        "description": "Quick 25-point appreciation",
+        "usage_hint": "@user \"your message\"",
+        "should_escape": false
+      },
+      {
+        "command": "/give",
+        "url": "https://rewardstation-poc.fly.dev/slack/events",
+        "description": "Opens modal for formal recognition (50-500 points)",
+        "usage_hint": "@user",
+        "should_escape": false
+      },
+      {
+        "command": "/balance",
+        "url": "https://rewardstation-poc.fly.dev/slack/events",
+        "description": "Check your point balance and statistics",
+        "usage_hint": "View your points",
+        "should_escape": false
+      },
+      {
+        "command": "/rewardstation",
+        "url": "https://rewardstation-poc.fly.dev/slack/events",
+        "description": "Legacy command (backward compatibility)",
+        "usage_hint": "help | thanks @user \"message\" | give @user | balance",
+        "should_escape": false
+      }
+    ]
+  },
+  "oauth_config": {
+    "scopes": {
+      "bot": [
+        "chat:write",
+        "users:read",
+        "users:read.email",
+        "channels:read",
+        "commands",
+        "im:write"
+      ]
+    }
+  },
+  "settings": {
+    "event_subscriptions": {
+      "request_url": "https://rewardstation-poc.fly.dev/slack/events",
+      "bot_events": []
+    },
+    "interactivity": {
+      "is_enabled": true,
+      "request_url": "https://rewardstation-poc.fly.dev/slack/events"
+    },
+    "org_deploy_enabled": false,
+    "socket_mode_enabled": false,
+    "token_rotation_enabled": false
+  }
+}
