@@ -91,10 +91,7 @@ router.post('/events', async (req, res) => {
   // Parse command
   const { command, text, user_id, user_name, response_url } = req.body || {};
   
-  // Immediately acknowledge to prevent timeout
-  res.status(200).send();
-  
-  // Process command asynchronously
+  // Process command and respond immediately to prevent timeout
   try {
     let response = { 
       response_type: 'ephemeral',
@@ -157,17 +154,19 @@ router.post('/events', async (req, res) => {
         response.text = `Unknown command: ${command}`;
     }
     
-    // Send response to Slack (if we have a response_url)
-    if (response_url) {
-      const axios = require('axios');
-      await axios.post(response_url, response).catch(err => {
-        console.error('Error sending response to Slack:', err.message);
-      });
-    }
-    
+    // Send the response immediately
+    res.json(response);
     console.log(`✅ Handled command: ${command} from ${user_name}`);
+    
+    // If we need to send additional responses, use response_url
+    // This would be for delayed or multiple responses
+    
   } catch (error) {
     console.error('Error processing command:', error);
+    res.json({
+      response_type: 'ephemeral',
+      text: '❌ An error occurred processing your command. Please try again.'
+    });
   }
 });
 
