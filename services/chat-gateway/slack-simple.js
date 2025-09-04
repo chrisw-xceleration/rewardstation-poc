@@ -111,9 +111,39 @@ router.post('/events', async (req, res) => {
         const thanksMatch = text?.match(/<@(\w+)\|?[\w.-]*>\s*(.*)/);
         if (thanksMatch) {
           const [, recipientId, message] = thanksMatch;
-          // Make visible to everyone in channel
-          response.response_type = 'in_channel';
-          response.text = `🎊 <@${user_id}> thanked <@${recipientId}> with 25 points!\n\n💬 "${message || 'Thanks for your great work!'}"`;
+          const thanksMessage = `🎊 <@${user_id}> thanked <@${recipientId}> with 25 points!\n\n💬 "${message || 'Thanks for your great work!'}"`;
+          
+          // Post to channel using Slack Web API for public visibility
+          if (config.slack.bot_token && config.slack.bot_token !== 'mock_bot_token' && channel_id) {
+            const axios = require('axios');
+            try {
+              await axios.post('https://slack.com/api/chat.postMessage',
+                {
+                  channel: channel_id,
+                  text: thanksMessage,
+                  unfurl_links: false,
+                  unfurl_media: false
+                },
+                {
+                  headers: {
+                    'Authorization': `Bearer ${config.slack.bot_token}`,
+                    'Content-Type': 'application/json'
+                  }
+                }
+              );
+              // Return empty response since we posted to channel
+              return res.status(200).send();
+            } catch (error) {
+              console.error('Error posting thanks message:', error.response?.data || error.message);
+              // Fallback to direct response if API fails
+              response.response_type = 'in_channel';
+              response.text = thanksMessage;
+            }
+          } else {
+            // Fallback if no token or channel
+            response.response_type = 'in_channel';
+            response.text = thanksMessage;
+          }
         } else {
           // Keep error message private (ephemeral)
           response.response_type = 'ephemeral';
