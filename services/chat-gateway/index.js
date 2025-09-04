@@ -9,6 +9,9 @@ const config = require('../../shared/config/index.js');
 const app = express();
 const server = createServer(app);
 
+// Trust proxy for Fly.io - fixes rate limiting and signature verification
+app.set('trust proxy', true);
+
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 1 minute
