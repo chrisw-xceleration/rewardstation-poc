@@ -113,8 +113,10 @@ router.post('/events', async (req, res) => {
           const [, recipientId, message] = thanksMatch;
           // Make visible to everyone in channel
           response.response_type = 'in_channel';
-          response.text = `🎊 <@${user_id}> recognized <@${recipientId}> with 250 points each!\n\n💬 "${message || 'Thanks for leading this project'}"`;
+          response.text = `🎊 <@${user_id}> recognized <@${recipientId}> with 250 points!\n\n💬 "${message || 'Thanks for leading this project'}"`;
         } else {
+          // Keep error message private (ephemeral)
+          response.response_type = 'ephemeral';
           response.text = '❓ Usage: `/thanks @user "your message"`';
         }
         break;
