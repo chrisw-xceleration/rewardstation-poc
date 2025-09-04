@@ -4,7 +4,8 @@ const router = express.Router();
 const crypto = require('crypto');
 const config = require('../../shared/config/index.js');
 
-// Note: Raw body handling is now done in index.js before this router
+// Middleware to capture raw body for signature verification
+router.use('/events', express.raw({ type: 'application/x-www-form-urlencoded' }));
 
 // Verify Slack request signature
 function verifySlackSignature(req) {
@@ -23,12 +24,17 @@ function verifySlackSignature(req) {
     return false;
   }
   
-  // Use the raw body captured in index.js
-  const body = req.rawBody;
+  // Use raw body if available, otherwise reconstruct from parsed body
+  let body = req.rawBody;
   
   if (!body) {
-    console.log('No raw body available for signature verification');
-    return false;
+    // If no raw body, reconstruct from parsed data
+    if (typeof req.body === 'object' && req.body !== null) {
+      body = new URLSearchParams(req.body).toString();
+    } else {
+      console.log('No body available for signature verification');
+      return false;
+    }
   }
   
   // Verify signature
@@ -59,6 +65,13 @@ function verifySlackSignature(req) {
 
 // Handle slash commands
 router.post('/events', async (req, res) => {
+  // Parse raw body if needed
+  if (Buffer.isBuffer(req.body)) {
+    req.rawBody = req.body.toString('utf8');
+    const params = new URLSearchParams(req.rawBody);
+    req.body = Object.fromEntries(params);
+  }
+  
   console.log('📨 Received Slack command:', req.body?.command);
   
   // Skip signature verification for development/testing and temporarily for production debugging
