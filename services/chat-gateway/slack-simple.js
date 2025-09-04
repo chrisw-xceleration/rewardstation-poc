@@ -74,6 +74,9 @@ router.post('/events', async (req, res) => {
   
   console.log('📨 Received Slack command:', req.body?.command);
   
+  // Store channel ID for modal responses
+  const channel_id = req.body?.channel_id;
+  
   // Skip signature verification for development/testing and temporarily for production debugging
   const skipVerification = config.environment === 'development' || !config.slack.signing_secret || config.slack.signing_secret === 'mock_signing_secret' || config.environment === 'production';
   
@@ -130,6 +133,7 @@ router.post('/events', async (req, res) => {
               type: 'plain_text',
               text: 'Give Recognition'
             },
+            private_metadata: JSON.stringify({ channel_id: channel_id }),
             submit: {
               type: 'plain_text',
               text: 'Send Recognition'
@@ -425,6 +429,13 @@ router.post('/interactive', async (req, res) => {
     // Send recognition message to channel
     if (recipients.length > 0) {
       const recipientMentions = recipients.map(id => `<@${id}>`).join(', ');
+      const categoryLabels = {
+        excellence: 'Excellence',
+        teamwork: 'Teamwork',
+        innovation: 'Innovation',
+        leadership: 'Leadership',
+        above_beyond: 'Going Above & Beyond'
+      };
       const categoryEmoji = {
         excellence: '🌟',
         teamwork: '🤝',
@@ -433,20 +444,30 @@ router.post('/interactive', async (req, res) => {
         above_beyond: '🚀'
       }[category] || '🎆';
       
-      // Post to channel using response_url or web API
+      // Get the original channel from private_metadata
+      const metadata = JSON.parse(view.private_metadata || '{}');
+      const channelId = metadata.channel_id;
+      
+      // Build message with proper grammar
+      const pointsText = recipients.length > 1 
+        ? `with ${points} points each` 
+        : `with ${points} points`;
+      
+      const categoryText = categoryLabels[category] || 'Recognition';
+      
+      // Post to the original channel where command was initiated
       const axios = require('axios');
       const channelMessage = {
-        response_type: 'in_channel',
-        text: `${categoryEmoji} <@${user.id}> recognized ${recipientMentions} with ${points} points each!\n\n💬 "${message}"`
+        text: `${categoryEmoji} <@${user.id}> recognized ${recipientMentions} ${pointsText} for *${categoryText}*\n\n💬 "${message}"`
       };
       
-      // If we have a bot token, post to channel
-      if (config.slack.bot_token && config.slack.bot_token !== 'mock_bot_token') {
+      // If we have a bot token, post to the original channel
+      if (config.slack.bot_token && config.slack.bot_token !== 'mock_bot_token' && channelId) {
         try {
-          await axios.post('https://slack.com/api/chat.postMessage',
+          const postResult = await axios.post('https://slack.com/api/chat.postMessage',
             {
-              channel: payload.user.id, // Post to user's current channel
-              ...channelMessage,
+              channel: channelId, // Post to the channel where /give was initiated
+              text: channelMessage.text,
               unfurl_links: false,
               unfurl_media: false
             },
@@ -457,9 +478,12 @@ router.post('/interactive', async (req, res) => {
               }
             }
           );
+          console.log('📤 Posted recognition to channel:', channelId, postResult.data.ok);
         } catch (error) {
           console.error('Error posting message:', error.response?.data || error.message);
         }
+      } else {
+        console.log('⚠️ Cannot post to channel - missing token or channel ID');
       }
       
       // Close the modal with success message
