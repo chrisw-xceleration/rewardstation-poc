@@ -108,19 +108,255 @@ router.post('/events', async (req, res) => {
         const thanksMatch = text?.match(/<@(\w+)\|?[\w.-]*>\s*(.*)/);
         if (thanksMatch) {
           const [, recipientId, message] = thanksMatch;
-          response.text = `✅ You thanked <@${recipientId}> with 25 points!\n💬 "${message || 'Great work!'}"`;
+          // Make visible to everyone in channel
+          response.response_type = 'in_channel';
+          response.text = `🎉 <@${user_id}> thanked <@${recipientId}> with 25 points!\n💬 "${message || 'Great work!'}"`;
         } else {
           response.text = '❓ Usage: `/thanks @user "your message"`';
         }
         break;
         
       case '/give':
-        const giveMatch = text?.match(/<@(\w+)\|?[\w.-]*>/);
-        if (giveMatch) {
-          response.text = `🎁 Opening recognition modal for <@${giveMatch[1]}>...\n(Modal functionality coming soon)`;
-        } else {
-          response.text = '❓ Usage: `/give @user`';
+        // To open a modal, we need to use Slack's API with the trigger_id
+        const trigger_id = req.body?.trigger_id;
+        
+        if (trigger_id) {
+          // Open modal using Slack Web API
+          const axios = require('axios');
+          const modalView = {
+            type: 'modal',
+            callback_id: 'give_recognition_modal',
+            title: {
+              type: 'plain_text',
+              text: 'Give Recognition'
+            },
+            submit: {
+              type: 'plain_text',
+              text: 'Send Recognition'
+            },
+            close: {
+              type: 'plain_text',
+              text: 'Cancel'
+            },
+            blocks: [
+              {
+                type: 'input',
+                block_id: 'recipients',
+                label: {
+                  type: 'plain_text',
+                  text: 'Select Recipients'
+                },
+                element: {
+                  type: 'multi_users_select',
+                  action_id: 'recipient_users',
+                  placeholder: {
+                    type: 'plain_text',
+                    text: 'Choose one or more team members'
+                  }
+                }
+              },
+              {
+                type: 'input',
+                block_id: 'points',
+                label: {
+                  type: 'plain_text',
+                  text: 'Points to Award (per person)'
+                },
+                element: {
+                  type: 'static_select',
+                  action_id: 'point_amount',
+                  placeholder: {
+                    type: 'plain_text',
+                    text: 'Select amount'
+                  },
+                  options: [
+                    { text: { type: 'plain_text', text: '50 points' }, value: '50' },
+                    { text: { type: 'plain_text', text: '100 points' }, value: '100' },
+                    { text: { type: 'plain_text', text: '250 points' }, value: '250' },
+                    { text: { type: 'plain_text', text: '500 points' }, value: '500' }
+                  ]
+                }
+              },
+              {
+                type: 'input',
+                block_id: 'category',
+                label: {
+                  type: 'plain_text',
+                  text: 'Recognition Category'
+                },
+                element: {
+                  type: 'static_select',
+                  action_id: 'category_select',
+                  placeholder: {
+                    type: 'plain_text',
+                    text: 'Choose category'
+                  },
+                  options: [
+                    { text: { type: 'plain_text', text: '🌟 Excellence' }, value: 'excellence' },
+                    { text: { type: 'plain_text', text: '🤝 Teamwork' }, value: 'teamwork' },
+                    { text: { type: 'plain_text', text: '💡 Innovation' }, value: 'innovation' },
+                    { text: { type: 'plain_text', text: '🎯 Leadership' }, value: 'leadership' },
+                    { text: { type: 'plain_text', text: '🚀 Going Above & Beyond' }, value: 'above_beyond' }
+                  ]
+                }
+              },
+              {
+                type: 'input',
+                block_id: 'message',
+                label: {
+                  type: 'plain_text',
+                  text: 'Recognition Message'
+                },
+                element: {
+                  type: 'plain_text_input',
+                  action_id: 'message_text',
+                  multiline: true,
+                  placeholder: {
+                    type: 'plain_text',
+                    text: 'Share why you\'re recognizing them...'
+                  }
+                }
+              }
+            ]
+          };
+          
+          // Call Slack API to open modal
+          if (config.slack.bot_token && config.slack.bot_token !== 'mock_bot_token') {
+            try {
+              await axios.post('https://slack.com/api/views.open', 
+                {
+                  trigger_id: trigger_id,
+                  view: modalView
+                },
+                {
+                  headers: {
+                    'Authorization': `Bearer ${config.slack.bot_token}`,
+                    'Content-Type': 'application/json'
+                  }
+                }
+              );
+              // Return empty response since modal will handle interaction
+              return res.status(200).send();
+            } catch (error) {
+              console.error('Error opening modal:', error.response?.data || error.message);
+            }
+          }
         }
+        
+        // Fallback if modal can't be opened
+        response.response_type = 'ephemeral';
+        response.blocks = [
+          {
+            type: 'section',
+            text: {
+              type: 'mrkdwn',
+              text: '🎁 *Give Recognition*'
+            }
+          },
+          {
+            type: 'input',
+            block_id: 'recipients_block',
+            label: {
+              type: 'plain_text',
+              text: 'Select Recipients'
+            },
+            element: {
+              type: 'multi_users_select',
+              action_id: 'recipient_select',
+              placeholder: {
+                type: 'plain_text',
+                text: 'Choose team members to recognize'
+              }
+            }
+          },
+          {
+            type: 'input',
+            block_id: 'points_block',
+            label: {
+              type: 'plain_text',
+              text: 'Points to Award'
+            },
+            element: {
+              type: 'static_select',
+              action_id: 'points_select',
+              placeholder: {
+                type: 'plain_text',
+                text: 'Select points'
+              },
+              options: [
+                {
+                  text: {
+                    type: 'plain_text',
+                    text: '50 points - Good job!'
+                  },
+                  value: '50'
+                },
+                {
+                  text: {
+                    type: 'plain_text',
+                    text: '100 points - Great work!'
+                  },
+                  value: '100'
+                },
+                {
+                  text: {
+                    type: 'plain_text',
+                    text: '250 points - Outstanding!'
+                  },
+                  value: '250'
+                },
+                {
+                  text: {
+                    type: 'plain_text',
+                    text: '500 points - Exceptional!'
+                  },
+                  value: '500'
+                }
+              ]
+            }
+          },
+          {
+            type: 'input',
+            block_id: 'message_block',
+            label: {
+              type: 'plain_text',
+              text: 'Recognition Message'
+            },
+            element: {
+              type: 'plain_text_input',
+              action_id: 'message_input',
+              multiline: true,
+              placeholder: {
+                type: 'plain_text',
+                text: 'Why are you recognizing them?'
+              }
+            }
+          },
+          {
+            type: 'actions',
+            elements: [
+              {
+                type: 'button',
+                text: {
+                  type: 'plain_text',
+                  text: 'Send Recognition',
+                  emoji: true
+                },
+                style: 'primary',
+                action_id: 'send_recognition'
+              },
+              {
+                type: 'button',
+                text: {
+                  type: 'plain_text',
+                  text: 'Cancel',
+                  emoji: true
+                },
+                action_id: 'cancel_recognition'
+              }
+            ]
+          }
+        ];
         break;
         
       case '/balance':
@@ -167,6 +403,84 @@ router.post('/events', async (req, res) => {
       response_type: 'ephemeral',
       text: '❌ An error occurred processing your command. Please try again.'
     });
+  }
+});
+
+// Handle interactive components (button clicks, modal submissions)
+router.post('/interactive', async (req, res) => {
+  // Parse the payload from Slack
+  const payload = JSON.parse(req.body?.payload || '{}');
+  const { type, user, view, actions } = payload;
+  
+  console.log('🔄 Received interaction:', type);
+  
+  // Handle modal submission
+  if (type === 'view_submission' && view?.callback_id === 'give_recognition_modal') {
+    const values = view.state.values;
+    const recipients = values.recipients?.recipient_users?.selected_users || [];
+    const points = values.points?.point_amount?.selected_option?.value;
+    const category = values.category?.category_select?.selected_option?.value;
+    const message = values.message?.message_text?.value;
+    
+    // Send recognition message to channel
+    if (recipients.length > 0) {
+      const recipientMentions = recipients.map(id => `<@${id}>`).join(', ');
+      const categoryEmoji = {
+        excellence: '🌟',
+        teamwork: '🤝',
+        innovation: '💡',
+        leadership: '🎯',
+        above_beyond: '🚀'
+      }[category] || '🎆';
+      
+      // Post to channel using response_url or web API
+      const axios = require('axios');
+      const channelMessage = {
+        response_type: 'in_channel',
+        text: `${categoryEmoji} <@${user.id}> recognized ${recipientMentions} with ${points} points each!\n\n💬 "${message}"`
+      };
+      
+      // If we have a bot token, post to channel
+      if (config.slack.bot_token && config.slack.bot_token !== 'mock_bot_token') {
+        try {
+          await axios.post('https://slack.com/api/chat.postMessage',
+            {
+              channel: payload.user.id, // Post to user's current channel
+              ...channelMessage,
+              unfurl_links: false,
+              unfurl_media: false
+            },
+            {
+              headers: {
+                'Authorization': `Bearer ${config.slack.bot_token}`,
+                'Content-Type': 'application/json'
+              }
+            }
+          );
+        } catch (error) {
+          console.error('Error posting message:', error.response?.data || error.message);
+        }
+      }
+      
+      // Close the modal with success message
+      return res.json({
+        response_action: 'clear'
+      });
+    }
+    
+    // Return validation error if no recipients
+    return res.json({
+      response_action: 'errors',
+      errors: {
+        recipients: 'Please select at least one recipient'
+      }
+    });
+  }
+  
+  // Handle button clicks from interactive messages
+  if (type === 'interactive_message' || type === 'block_actions') {
+    // Acknowledge the interaction
+    res.status(200).send();
   }
 });
 
