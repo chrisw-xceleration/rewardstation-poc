@@ -101,7 +101,7 @@ router.post('/events', async (req, res) => {
     // Handle different commands
     switch (command) {
       case '/help':
-        response.text = `🤖 **Maslow Insights Help**\n\n• \`/thanks @user "message"\` - Quick 25-point appreciation\n• \`/give @user\` - Opens modal for formal recognition (50-500 points)\n• \`/balance\` - Check your point balance and statistics\n• \`/help\` - AI-powered contextual assistance`;
+        response.text = `🤖 *Maslow Insights Help*\n\nUse the new simplified commands:\n• \`/help\` - Get help\n• \`/thanks @user "message"\` - Send thanks\n• \`/give @user\` - Give recognition\n• \`/balance\` - Check balance`;
         break;
         
       case '/thanks':
@@ -110,7 +110,7 @@ router.post('/events', async (req, res) => {
           const [, recipientId, message] = thanksMatch;
           // Make visible to everyone in channel
           response.response_type = 'in_channel';
-          response.text = `🎉 <@${user_id}> thanked <@${recipientId}> with 25 points!\n💬 "${message || 'Great work!'}"`;
+          response.text = `🎊 <@${user_id}> recognized <@${recipientId}> with 250 points each!\n\n💬 "${message || 'Thanks for leading this project'}"`;
         } else {
           response.text = '❓ Usage: `/thanks @user "your message"`';
         }
