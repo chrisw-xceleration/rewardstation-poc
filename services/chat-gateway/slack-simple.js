@@ -4,11 +4,14 @@ const router = express.Router();
 const crypto = require('crypto');
 const config = require('../../shared/config/index.js');
 
+// Middleware to capture raw body for signature verification
+router.use(express.raw({ type: 'application/x-www-form-urlencoded' }));
+router.use(express.urlencoded({ extended: true }));
+
 // Verify Slack request signature
 function verifySlackSignature(req) {
   const signature = req.headers['x-slack-signature'];
   const timestamp = req.headers['x-slack-request-timestamp'];
-  const body = req.rawBody || JSON.stringify(req.body);
   
   if (!signature || !timestamp) {
     console.log('Missing Slack signature headers');
@@ -22,6 +25,18 @@ function verifySlackSignature(req) {
     return false;
   }
   
+  // Use raw body if available, otherwise fall back to parsed body
+  let body;
+  if (Buffer.isBuffer(req.body)) {
+    // Raw body as buffer from express.raw()
+    body = req.body.toString('utf8');
+  } else if (typeof req.body === 'string') {
+    body = req.body;
+  } else {
+    // Reconstruct body from parsed data for form-encoded requests
+    body = new URLSearchParams(req.body).toString();
+  }
+  
   // Verify signature
   const sigBasestring = 'v0:' + timestamp + ':' + body;
   const mySignature = 'v0=' + crypto
@@ -29,10 +44,22 @@ function verifySlackSignature(req) {
     .update(sigBasestring, 'utf8')
     .digest('hex');
   
-  return crypto.timingSafeEqual(
+  const isValid = crypto.timingSafeEqual(
     Buffer.from(mySignature, 'utf8'),
     Buffer.from(signature, 'utf8')
   );
+  
+  if (!isValid) {
+    console.log('Signature verification failed:', {
+      expected: mySignature,
+      received: signature,
+      timestamp,
+      bodyLength: body.length,
+      hasRawBody: !!req.rawBody
+    });
+  }
+  
+  return isValid;
 }
 
 // Handle slash commands
